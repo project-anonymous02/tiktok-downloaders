@@ -1,0 +1,1420 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="TikTok Downloader - Unduh video TikTok tanpa watermark dalam format MP3 atau MP4">
+    <meta name="theme-color" content="#1e8b4c">
+    <title>TikTok Downloader by nata~</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* ===== CSS VARIABLES & RESET ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --color-primary: #1e8b4c;
+            --color-dark: #0f3b28;
+            --color-accent: #25d366;
+            --color-bg: #f4faf7;
+            --color-card: #ffffff;
+            --color-text-primary: #0f3b28;
+            --color-text-secondary: #5a7b6f;
+            --color-error: #d32f2f;
+            --color-border: #e2f1ea;
+            
+            --spacing-xs: 4px;
+            --spacing-sm: 8px;
+            --spacing-md: 12px;
+            --spacing-lg: 16px;
+            --spacing-xl: 24px;
+            --spacing-2xl: 32px;
+            --spacing-3xl: 48px;
+            
+            --radius-sm: 12px;
+            --radius-md: 16px;
+            --radius-lg: 20px;
+            
+            --font-primary: 'Poppins', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --transition-fast: 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            --transition-normal: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            --transition-slow: 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            font-family: var(--font-primary);
+            background-color: var(--color-bg);
+            color: var(--color-text-primary);
+        }
+
+        /* ===== LOADING SCREEN ===== */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(244, 250, 247, 0.95);
+            backdrop-filter: blur(8px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            opacity: 1;
+            transition: opacity var(--transition-slow);
+        }
+
+        .loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loading-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: var(--spacing-lg);
+        }
+
+        .loading-image {
+            width: 200px;
+            height: 200px;
+            border-radius: var(--radius-md);
+            background: linear-gradient(135deg, var(--color-primary), var(--color-dark));
+            box-shadow: 0 16px 48px rgba(15, 59, 40, 0.16);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 48px;
+            transition: var(--transition-slow);
+        }
+
+        .loading-image.transition {
+            position: fixed;
+            top: var(--spacing-lg);
+            left: var(--spacing-lg);
+            width: 60px;
+            height: 60px;
+            z-index: 10000;
+        }
+
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--color-border);
+            border-top-color: var(--color-primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* ===== MAIN APP CONTAINER ===== */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: var(--spacing-lg);
+        }
+
+        .app-card {
+            background-color: var(--color-card);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-2xl);
+            box-shadow: 0 20px 60px rgba(15, 59, 40, 0.12);
+            max-width: 800px;
+            width: 100%;
+            max-height: 95vh;
+            overflow-y: auto;
+            transition: all var(--transition-normal);
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .app-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .app-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 24px 72px rgba(15, 59, 40, 0.16);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: var(--spacing-md);
+            }
+
+            .app-card {
+                padding: var(--spacing-xl);
+            }
+        }
+
+        /* ===== PROFILE SECTION ===== */
+        .profile-section {
+            text-align: center;
+            margin-bottom: var(--spacing-2xl);
+        }
+
+        .profile-pic {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--color-primary), var(--color-dark));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 28px;
+            margin: 0 auto var(--spacing-md);
+            box-shadow: 0 8px 20px rgba(30, 139, 76, 0.2);
+        }
+
+        .app-title {
+            font-size: 32px;
+            font-weight: 800;
+            line-height: 1.2;
+            letter-spacing: -0.5px;
+            color: var(--color-text-primary);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .app-tagline {
+            font-size: 15px;
+            font-weight: 400;
+            color: var(--color-primary);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .badges-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-md);
+            justify-content: center;
+        }
+
+        .badge {
+            background-color: #e9f6ef;
+            padding: var(--spacing-sm) var(--spacing-lg);
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--color-text-primary);
+            transition: all var(--transition-fast);
+        }
+
+        .badge:hover {
+            transform: scale(1.05);
+            background-color: #dff0eb;
+        }
+
+        /* ===== INPUT SECTION ===== */
+        .input-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-md);
+            margin-top: var(--spacing-xl);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .url-input-box {
+            flex: 1;
+            min-width: 200px;
+            display: flex;
+            align-items: center;
+            background-color: var(--color-card);
+            border: 2px solid var(--color-border);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-md) var(--spacing-lg);
+            gap: var(--spacing-md);
+            transition: all var(--transition-fast);
+        }
+
+        .url-input-box:focus-within {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 4px rgba(30, 139, 76, 0.08);
+        }
+
+        .url-input-box.error {
+            border-color: var(--color-error);
+            box-shadow: 0 0 0 4px rgba(211, 47, 47, 0.08);
+        }
+
+        .url-input-box i {
+            color: var(--color-primary);
+            font-size: 16px;
+        }
+
+        .url-input-box input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 15px;
+            font-family: var(--font-primary);
+            color: var(--color-text-primary);
+            background: transparent;
+        }
+
+        .url-input-box input::placeholder {
+            color: #8b9f93;
+        }
+
+        .url-input-box input:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-process {
+            padding: 14px 22px;
+            border-radius: var(--radius-md);
+            background: linear-gradient(135deg, var(--color-dark), var(--color-primary));
+            color: white;
+            font-size: 15px;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            transition: all var(--transition-fast);
+            white-space: nowrap;
+        }
+
+        .btn-process:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(30, 139, 76, 0.25);
+        }
+
+        .btn-process:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+
+        .btn-process:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-process i {
+            font-size: 16px;
+        }
+
+        /* ===== FORMAT TOGGLE ===== */
+        .format-container {
+            display: flex;
+            gap: var(--spacing-md);
+            margin-top: var(--spacing-xl);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .format-btn {
+            flex: 1;
+            padding: var(--spacing-md) var(--spacing-lg);
+            border-radius: 14px;
+            border: 2px solid var(--color-primary);
+            background-color: var(--color-card);
+            color: var(--color-primary);
+            font-size: 15px;
+            font-weight: 700;
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .format-btn:hover:not(.active) {
+            background-color: #f1f8f4;
+            border-color: var(--color-accent);
+        }
+
+        .format-btn.active {
+            background-color: var(--color-primary);
+            color: white;
+            box-shadow: 0 6px 18px rgba(30, 139, 76, 0.25);
+        }
+
+        /* ===== PREVIEW SECTION ===== */
+        .preview-section {
+            display: none;
+            margin: var(--spacing-xl) 0;
+            padding: var(--spacing-lg);
+            background-color: #f6fbf8;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--color-border);
+            animation: slideUpFade var(--transition-normal);
+        }
+
+        .preview-section.show {
+            display: block;
+        }
+
+        @keyframes slideUpFade {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .preview-thumbnail {
+            width: 100%;
+            max-height: 320px;
+            aspect-ratio: 16/9;
+            object-fit: cover;
+            border-radius: var(--radius-md);
+            box-shadow: 0 8px 24px rgba(15, 59, 40, 0.12);
+        }
+
+        .preview-metadata {
+            margin-top: var(--spacing-md);
+        }
+
+        .preview-caption {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--color-text-primary);
+            margin-bottom: var(--spacing-sm);
+            word-break: break-word;
+        }
+
+        .preview-info {
+            font-size: 13px;
+            color: var(--color-text-secondary);
+            line-height: 1.5;
+        }
+
+        /* ===== CUSTOM FILENAME INPUT ===== */
+        .filename-section {
+            display: none;
+            margin: var(--spacing-lg) 0;
+            animation: slideUpFade var(--transition-normal);
+            animation-delay: 0.1s;
+        }
+
+        .filename-section.show {
+            display: block;
+        }
+
+        .filename-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--color-text-secondary);
+            margin-bottom: var(--spacing-sm);
+            display: block;
+        }
+
+        .filename-input-box {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+        }
+
+        .filename-input {
+            flex: 1;
+            padding: var(--spacing-md) var(--spacing-lg);
+            border: 2px solid var(--color-border);
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-family: var(--font-primary);
+            background-color: #f9faf9;
+            color: var(--color-text-primary);
+            transition: all var(--transition-fast);
+        }
+
+        .filename-input::placeholder {
+            color: #8b9f93;
+        }
+
+        .filename-input:focus {
+            border-color: var(--color-primary);
+            background-color: var(--color-card);
+            box-shadow: 0 0 0 3px rgba(30, 139, 76, 0.08);
+        }
+
+        .filename-extension {
+            font-size: 12px;
+            color: var(--color-text-secondary);
+            min-width: 40px;
+        }
+
+        .filename-status {
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .filename-status.valid {
+            color: var(--color-accent);
+        }
+
+        .filename-status.invalid {
+            color: var(--color-error);
+        }
+
+        .filename-helper {
+            font-size: 12px;
+            color: var(--color-text-secondary);
+            margin-top: var(--spacing-sm);
+            display: none;
+        }
+
+        .filename-helper.show {
+            display: block;
+        }
+
+        .filename-helper.error {
+            color: var(--color-error);
+        }
+
+        /* ===== DOWNLOAD BUTTON ===== */
+        .btn-download {
+            width: 100%;
+            padding: var(--spacing-lg);
+            border-radius: var(--radius-md);
+            background: linear-gradient(135deg, var(--color-primary), var(--color-dark));
+            color: white;
+            font-size: 15px;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-md);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-download:hover:not(:disabled) {
+            transform: scale(1.03);
+            box-shadow: 0 10px 30px rgba(30, 139, 76, 0.35);
+        }
+
+        .btn-download:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+
+        .btn-download:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* ===== LOADING VIDEO STATE ===== */
+        .progress-container {
+            display: none;
+            height: 220px;
+            position: relative;
+            background: #f6fbf8;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            margin-top: var(--spacing-xl);
+        }
+
+        .progress-container.show {
+            display: flex;
+        }
+
+        .progress-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .progress-overlay {
+            position: absolute;
+            top: var(--spacing-lg);
+            right: var(--spacing-lg);
+            background: rgba(15, 59, 40, 0.8);
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 700;
+            color: white;
+            z-index: 10;
+        }
+
+        .progress-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
+            transition: width 0.3s linear;
+            z-index: 5;
+        }
+
+        .progress-cancel {
+            position: absolute;
+            top: var(--spacing-lg);
+            right: var(--spacing-lg);
+            width: 32px;
+            height: 32px;
+            background: rgba(0, 0, 0, 0.4);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: background var(--transition-fast);
+            z-index: 15;
+        }
+
+        .progress-cancel:hover {
+            background: rgba(0, 0, 0, 0.6);
+        }
+
+        /* ===== TOAST NOTIFICATIONS ===== */
+        .toast-container {
+            position: fixed;
+            top: var(--spacing-xl);
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9998;
+            width: 90%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-md);
+        }
+
+        .toast {
+            background-color: var(--color-card);
+            border-left: 4px solid var(--color-primary);
+            padding: var(--spacing-lg);
+            border-radius: var(--radius-md);
+            box-shadow: 0 8px 24px rgba(15, 59, 40, 0.16);
+            animation: slideDown var(--transition-normal);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            font-size: 15px;
+            color: var(--color-text-primary);
+        }
+
+        .toast.success {
+            border-left-color: var(--color-accent);
+        }
+
+        .toast.error {
+            border-left-color: var(--color-error);
+        }
+
+        .toast.info {
+            border-left-color: var(--color-primary);
+        }
+
+        .toast i {
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .toast.success i {
+            color: var(--color-accent);
+        }
+
+        .toast.error i {
+            color: var(--color-error);
+        }
+
+        .toast.info i {
+            color: var(--color-primary);
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+        }
+
+        /* ===== FOOTER ===== */
+        .footer {
+            text-align: center;
+            margin-top: var(--spacing-3xl);
+            padding-top: var(--spacing-xl);
+            border-top: 1px solid var(--color-border);
+            font-size: 13px;
+            color: var(--color-text-secondary);
+        }
+
+        .footer a {
+            color: var(--color-primary);
+            text-decoration: none;
+            transition: color var(--transition-fast);
+        }
+
+        .footer a:hover {
+            color: var(--color-dark);
+            text-decoration: underline;
+        }
+
+        /* ===== SCROLLBAR ===== */
+        .app-card::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .app-card::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .app-card::-webkit-scrollbar-thumb {
+            background: var(--color-border);
+            border-radius: 4px;
+        }
+
+        .app-card::-webkit-scrollbar-thumb:hover {
+            background: #c8dcd5;
+        }
+
+        /* ===== UTILITY CLASSES ===== */
+        .hidden {
+            display: none !important;
+        }
+
+        .disabled {
+            opacity: 0.6 !important;
+            cursor: not-allowed !important;
+            pointer-events: none !important;
+        }
+
+        /* ===== ACCESSIBILITY ===== */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .app-title {
+                font-size: 24px;
+            }
+
+            .input-section {
+                flex-direction: column;
+            }
+
+            .url-input-box,
+            .btn-process {
+                width: 100%;
+            }
+
+            .format-container {
+                flex-direction: column;
+            }
+
+            .format-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- LOADING SCREEN -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="loading-image" id="loadingImage">
+                📥
+            </div>
+            <div class="spinner"></div>
+        </div>
+    </div>
+
+    <!-- MAIN APP CARD -->
+    <div class="app-card" id="appCard">
+        <!-- PROFILE SECTION -->
+        <div class="profile-section">
+            <div class="profile-pic" id="profilePic">🎵</div>
+            <h1 class="app-title">TIKTOK DOWNLOADER</h1>
+            <p class="app-tagline">by nata~ ❤️</p>
+            <p style="font-size: 13px; color: #5a7b6f; margin-bottom: var(--spacing-lg);">Cepat, bersih, tanpa watermark</p>
+            <div class="badges-container">
+                <div class="badge">⚡ FAST</div>
+                <div class="badge">🔒 SECURE</div>
+                <div class="badge">✨ NO WM</div>
+                <div class="badge">🎵 MP3/MP4</div>
+            </div>
+        </div>
+
+        <!-- INPUT SECTION -->
+        <div class="input-section">
+            <div class="url-input-box">
+                <i class="fas fa-link"></i>
+                <input 
+                    type="text" 
+                    id="urlInput" 
+                    placeholder="Paste TikTok URL here..."
+                    aria-label="TikTok video URL"
+                >
+            </div>
+            <button class="btn-process" id="processBtn" aria-label="Fetch video">
+                <i class="fas fa-bolt"></i>
+                Ambil Video
+            </button>
+        </div>
+
+        <!-- FORMAT TOGGLE -->
+        <div class="format-container">
+            <button class="format-btn active" data-format="mp4" aria-label="Download as MP4">
+                <i class="fas fa-film"></i> MP4
+            </button>
+            <button class="format-btn" data-format="mp3" aria-label="Download as MP3">
+                <i class="fas fa-music"></i> MP3
+            </button>
+        </div>
+
+        <!-- PREVIEW SECTION -->
+        <div class="preview-section" id="previewSection">
+            <img class="preview-thumbnail" id="previewThumbnail" alt="Video thumbnail">
+            <div class="preview-metadata">
+                <div class="preview-caption" id="previewCaption"></div>
+                <div class="preview-info" id="previewInfo"></div>
+            </div>
+        </div>
+
+        <!-- CUSTOM FILENAME -->
+        <div class="filename-section" id="filenameSection">
+            <label class="filename-label" for="filenameInput">Nama File</label>
+            <div class="filename-input-box">
+                <input 
+                    type="text" 
+                    id="filenameInput" 
+                    class="filename-input"
+                    placeholder="Nama file otomatis"
+                    aria-label="Custom filename"
+                >
+                <span class="filename-extension" id="filenameExtension">.mp4</span>
+                <div class="filename-status" id="filenameStatus"></div>
+            </div>
+            <div class="filename-helper" id="filenameHelper"></div>
+        </div>
+
+        <!-- PROGRESS CONTAINER -->
+        <div class="progress-container" id="progressContainer">
+            <video class="progress-video" id="progressVideo" autoplay loop muted></video>
+            <div class="progress-overlay" id="progressOverlay">0% • Memulai...</div>
+            <div class="progress-bar" id="progressBar"></div>
+            <button class="progress-cancel" id="progressCancel" aria-label="Cancel download">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <!-- DOWNLOAD BUTTON -->
+        <button class="btn-download" id="downloadBtn" aria-label="Download video">
+            <i class="fas fa-download"></i>
+            <span id="downloadBtnText">DOWNLOAD MP4</span>
+        </button>
+
+        <!-- FOOTER -->
+        <div class="footer">
+            © 2025 nata~ ❤️ All rights reserved.<br>
+            <a href="#" onclick="return false;">Terms</a> • 
+            <a href="#" onclick="return false;">Privacy</a>
+        </div>
+    </div>
+
+    <!-- TOAST CONTAINER -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        // ===== CONSTANTS & CONFIGURATION =====
+        const CONFIG = {
+            LOADING_DURATION: 6000,
+            API_TIMEOUT_SINGLE: 5000,
+            API_TIMEOUT_OVERALL: 6000,
+            INPUT_DEBOUNCE: 300,
+            TOAST_DURATION: 3000,
+            MAX_FILENAME_LENGTH: 50,
+            ANIMATION_DURATION: 300,
+        };
+
+        const API_ENDPOINTS = [
+            (url) => `https://tikwm.com/api/?url=${encodeURIComponent(url)}`,
+            (url) => `https://api.tikwm.com/video/info?url=${encodeURIComponent(url)}`,
+        ];
+
+        const COLORS = {
+            primary: '#1e8b4c',
+            dark: '#0f3b28',
+            accent: '#25d366',
+            error: '#d32f2f',
+        };
+
+        // ===== STATE MANAGEMENT =====
+        const STATE = {
+            videoData: null,
+            currentFormat: 'mp4',
+            isLoading: false,
+            isDownloading: false,
+            currentFilename: '',
+            abortController: null,
+        };
+
+        // ===== DOM ELEMENTS CACHE =====
+        const DOM = {
+            loadingOverlay: document.getElementById('loadingOverlay'),
+            loadingImage: document.getElementById('loadingImage'),
+            appCard: document.getElementById('appCard'),
+            urlInput: document.getElementById('urlInput'),
+            processBtn: document.getElementById('processBtn'),
+            formatBtns: document.querySelectorAll('.format-btn'),
+            previewSection: document.getElementById('previewSection'),
+            previewThumbnail: document.getElementById('previewThumbnail'),
+            previewCaption: document.getElementById('previewCaption'),
+            previewInfo: document.getElementById('previewInfo'),
+            filenameSection: document.getElementById('filenameSection'),
+            filenameInput: document.getElementById('filenameInput'),
+            filenameExtension: document.getElementById('filenameExtension'),
+            filenameStatus: document.getElementById('filenameStatus'),
+            filenameHelper: document.getElementById('filenameHelper'),
+            downloadBtn: document.getElementById('downloadBtn'),
+            downloadBtnText: document.getElementById('downloadBtnText'),
+            progressContainer: document.getElementById('progressContainer'),
+            progressVideo: document.getElementById('progressVideo'),
+            progressOverlay: document.getElementById('progressOverlay'),
+            progressBar: document.getElementById('progressBar'),
+            progressCancel: document.getElementById('progressCancel'),
+            toastContainer: document.getElementById('toastContainer'),
+        };
+
+        // ===== UTILITY FUNCTIONS =====
+
+        /**
+         * Format large numbers into readable format (1234 -> 1.2K)
+         */
+        function formatNumber(num) {
+            if (!num) return '0';
+            if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+            if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+            return num.toString();
+        }
+
+        /**
+         * Format duration from seconds to mm:ss format
+         */
+        function formatDuration(seconds) {
+            if (!seconds) return '0:00';
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        /**
+         * Debounce function for input validation
+         */
+        function debounce(func, delay) {
+            let timeoutId;
+            return function (...args) {
+                clearTimeout(timeoutId);
+                timeoutId = setTimeout(() => func(...args), delay);
+            };
+        }
+
+        /**
+         * Validate TikTok URL
+         */
+        function validateURL(url) {
+            const isValid = url.toLowerCase().includes('tiktok');
+            DOM.urlInput.parentElement.classList.toggle('error', !isValid && url.length > 0);
+            return isValid;
+        }
+
+        /**
+         * Sanitize filename - remove special characters
+         */
+        function sanitizeFilename(input) {
+            return input
+                .replace(/[<>:"/\\|?*]/g, '')
+                .slice(0, CONFIG.MAX_FILENAME_LENGTH)
+                .trim();
+        }
+
+        /**
+         * Validate filename and show status
+         */
+        function validateFilename(filename) {
+            const sanitized = sanitizeFilename(filename);
+            const isValid = sanitized.length > 0;
+
+            DOM.filenameStatus.classList.remove('valid', 'invalid');
+            DOM.filenameHelper.classList.remove('show', 'error');
+
+            if (filename.length === 0) {
+                return true;
+            }
+
+            if (!isValid) {
+                DOM.filenameStatus.classList.add('invalid');
+                DOM.filenameStatus.innerHTML = '<i class="fas fa-times"></i>';
+                DOM.filenameHelper.classList.add('show', 'error');
+                DOM.filenameHelper.textContent = 'Karakter tidak diizinkan';
+                return false;
+            }
+
+            if (filename.length > CONFIG.MAX_FILENAME_LENGTH) {
+                DOM.filenameStatus.classList.add('invalid');
+                DOM.filenameStatus.innerHTML = '<i class="fas fa-times"></i>';
+                DOM.filenameHelper.classList.add('show', 'error');
+                DOM.filenameHelper.textContent = 'Nama terlalu panjang (max 50 karakter)';
+                return false;
+            }
+
+            DOM.filenameStatus.classList.add('valid');
+            DOM.filenameStatus.innerHTML = '<i class="fas fa-check"></i>';
+            return true;
+        }
+
+        /**
+         * Show toast notification
+         */
+        function showToast(message, type = 'info', duration = CONFIG.TOAST_DURATION) {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+
+            let icon;
+            if (type === 'success') {
+                icon = '<i class="fas fa-check-circle"></i>';
+            } else if (type === 'error') {
+                icon = '<i class="fas fa-exclamation-circle"></i>';
+            } else {
+                icon = '<i class="fas fa-info-circle"></i>';
+            }
+
+            toast.innerHTML = `${icon}<span>${message}</span>`;
+            DOM.toastContainer.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.animation = 'slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards';
+                setTimeout(() => {
+                    DOM.toastContainer.removeChild(toast);
+                }, 300);
+            }, duration);
+        }
+
+        /**
+         * Truncate text with ellipsis
+         */
+        function truncateText(text, maxLength = 100) {
+            return text.length > maxLength ? text.slice(0, maxLength) + '...' : text;
+        }
+
+        // ===== API INTEGRATION =====
+
+        /**
+         * Try single API endpoint with timeout
+         */
+        async function tryAPI(url, timeoutMs = CONFIG.API_TIMEOUT_SINGLE) {
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+                const response = await fetch(url, {
+                    signal: controller.signal,
+                    headers: {
+                        'Accept': 'application/json',
+                    }
+                });
+
+                clearTimeout(timeoutId);
+
+                if (!response.ok) {
+                    console.warn(`API error: HTTP ${response.status}`);
+                    return null;
+                }
+
+                const json = await response.json();
+
+                // Validate response structure
+                if (json?.data?.play || (json?.data?.music?.play)) {
+                    return json.data;
+                }
+
+                console.warn('Invalid response structure:', json);
+                return null;
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    console.warn('API timeout');
+                } else {
+                    console.warn('API error:', error.message);
+                }
+                return null;
+            }
+        }
+
+        /**
+         * Fetch video data from APIs with Promise.race
+         */
+        async function fetchFromAPIs(url) {
+            try {
+                const timeoutPromise = new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error('Overall timeout')), CONFIG.API_TIMEOUT_OVERALL)
+                );
+
+                const apiPromises = API_ENDPOINTS.map(buildURL => tryAPI(buildURL(url)));
+
+                // Race against overall timeout
+                const results = await Promise.race([
+                    Promise.all(apiPromises),
+                    timeoutPromise
+                ]);
+
+                // Find first valid response
+                const data = results.find(r => r !== null);
+
+                if (!data) {
+                    throw new Error('Tidak ada respons valid dari API');
+                }
+
+                return data;
+            } catch (error) {
+                console.error('Fetch error:', error);
+                throw error;
+            }
+        }
+
+        /**
+         * Process URL and fetch video data
+         */
+        async function processURL() {
+            const url = DOM.urlInput.value.trim();
+
+            if (!validateURL(url)) {
+                showToast('Link TikTok tidak valid', 'error');
+                return;
+            }
+
+            if (STATE.isLoading) return;
+
+            STATE.isLoading = true;
+            DOM.processBtn.disabled = true;
+            DOM.urlInput.disabled = true;
+
+            try {
+                showToast('Mengambil video...', 'info');
+                const videoData = await fetchFromAPIs(url);
+
+                STATE.videoData = videoData;
+
+                // Generate default filename
+                const videoId = videoData.id || 'tiktok';
+                const extension = STATE.currentFormat === 'mp4' ? 'mp4' : 'mp3';
+                STATE.currentFilename = `tiktok_${videoId}_${extension}`;
+                DOM.filenameInput.value = '';
+
+                // Show preview
+                showPreview(videoData);
+                showToast('Video berhasil diambil!', 'success');
+            } catch (error) {
+                console.error('Process error:', error);
+
+                let errorMessage = 'Terjadi kesalahan';
+                if (error.message.includes('timeout')) {
+                    errorMessage = 'Koneksi lambat, silakan coba lagi';
+                } else if (error.message.includes('tidak ada respons')) {
+                    errorMessage = 'Video tidak dapat diakses (mungkin sudah dihapus)';
+                }
+
+                showToast(errorMessage, 'error', 4000);
+            } finally {
+                STATE.isLoading = false;
+                DOM.processBtn.disabled = false;
+                DOM.urlInput.disabled = false;
+            }
+        }
+
+        /**
+         * Display video preview
+         */
+        function showPreview(data) {
+            // Thumbnail
+            const thumbnailUrl = data.cover || data.ai_dynamic_cover || data.origin_cover;
+            if (thumbnailUrl) {
+                DOM.previewThumbnail.src = thumbnailUrl;
+                DOM.previewThumbnail.alt = 'Video thumbnail';
+            }
+
+            // Caption
+            const caption = truncateText(data.title || 'Untitled', 100);
+            DOM.previewCaption.textContent = caption;
+
+            // Metadata
+            const views = formatNumber(data.play_count || 0);
+            const duration = formatDuration(data.duration || 0);
+            const likes = formatNumber(data.digg_count || 0);
+            DOM.previewInfo.textContent = `👍 ${likes} • 📹 ${duration} • 👁️ ${views}`;
+
+            // Show sections
+            DOM.previewSection.classList.add('show');
+            DOM.filenameSection.classList.add('show');
+        }
+
+        /**
+         * Update download button text based on format
+         */
+        function updateDownloadButton() {
+            const format = STATE.currentFormat.toUpperCase();
+            DOM.downloadBtnText.textContent = `DOWNLOAD ${format}`;
+        }
+
+        /**
+         * Update filename extension
+         */
+        function updateFilenameExtension() {
+            const extension = STATE.currentFormat === 'mp4' ? '.mp4' : '.mp3';
+            DOM.filenameExtension.textContent = extension;
+        }
+
+        /**
+         * Get download URL based on format
+         */
+        function getDownloadURL() {
+            if (!STATE.videoData) return null;
+
+            if (STATE.currentFormat === 'mp4') {
+                return STATE.videoData.play || STATE.videoData.hdplay;
+            } else {
+                return STATE.videoData.music?.play;
+            }
+        }
+
+        /**
+         * Get filename with extension
+         */
+        function getFilenameWithExtension() {
+            let filename = DOM.filenameInput.value.trim();
+
+            if (!filename) {
+                filename = STATE.currentFilename;
+            }
+
+            filename = sanitizeFilename(filename);
+            const extension = STATE.currentFormat === 'mp4' ? 'mp4' : 'mp3';
+            return `${filename}.${extension}`;
+        }
+
+        /**
+         * Trigger download
+         */
+        function triggerDownload(blob, filename) {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        /**
+         * Download video with progress tracking
+         */
+        async function downloadVideo() {
+            const downloadUrl = getDownloadURL();
+            const filename = getFilenameWithExtension();
+
+            if (!downloadUrl) {
+                showToast('URL download tidak ditemukan', 'error');
+                return;
+            }
+
+            if (!validateFilename(DOM.filenameInput.value)) {
+                showToast('Nama file tidak valid', 'error');
+                return;
+            }
+
+            STATE.isDownloading = true;
+            STATE.abortController = new AbortController();
+
+            // Show progress container
+            DOM.downloadBtn.style.display = 'none';
+            DOM.progressContainer.classList.add('show');
+
+            try {
+                const xhr = new XMLHttpRequest();
+                xhr.open('GET', downloadUrl, true);
+                xhr.responseType = 'blob';
+
+                // Progress tracking
+                xhr.onprogress = (event) => {
+                    if (event.lengthComputable) {
+                        const percent = Math.round((event.loaded / event.total) * 100);
+                        DOM.progressBar.style.width = `${percent}%`;
+                        DOM.progressOverlay.textContent = `${percent}% • Mengunduh...`;
+                    }
+                };
+
+                xhr.onload = () => {
+                    if (xhr.status === 200) {
+                        const blob = xhr.response;
+                        triggerDownload(blob, filename);
+                        showToast('✓ Download selesai', 'success');
+                        resetDownloadUI();
+                    } else {
+                        showToast(`Download gagal: ${xhr.status}`, 'error');
+                        resetDownloadUI();
+                    }
+                };
+
+                xhr.onerror = () => {
+                    showToast('Kesalahan koneksi saat download', 'error');
+                    resetDownloadUI();
+                };
+
+                xhr.onabort = () => {
+                    showToast('Download dibatalkan', 'info');
+                    resetDownloadUI();
+                };
+
+                xhr.send();
+
+                // Store xhr reference for cancel
+                STATE.currentXHR = xhr;
+            } catch (error) {
+                console.error('Download error:', error);
+                showToast('Terjadi kesalahan saat download', 'error');
+                resetDownloadUI();
+            }
+        }
+
+        /**
+         * Reset download UI
+         */
+        function resetDownloadUI() {
+            STATE.isDownloading = false;
+            DOM.downloadBtn.style.display = 'flex';
+            DOM.progressContainer.classList.remove('show');
+            DOM.progressBar.style.width = '0%';
+            DOM.progressOverlay.textContent = '0% • Memulai...';
+        }
+
+        /**
+         * Cancel download
+         */
+        function cancelDownload() {
+            if (STATE.currentXHR) {
+                STATE.currentXHR.abort();
+            }
+            resetDownloadUI();
+        }
+
+        // ===== INITIALIZATION =====
+
+        /**
+         * Initialize loading screen and transition
+         */
+        function initializeLoadingScreen() {
+            setTimeout(() => {
+                // Hide loading overlay
+                DOM.loadingOverlay.classList.add('hidden');
+
+                // Animate image transition
+                DOM.loadingImage.classList.add('transition');
+
+                // Show main app card
+                setTimeout(() => {
+                    DOM.appCard.classList.add('visible');
+                    DOM.urlInput.focus();
+                }, 200);
+            }, CONFIG.LOADING_DURATION);
+        }
+
+        /**
+         * Setup all event listeners
+         */
+        function setupEventListeners() {
+            // URL input
+            DOM.urlInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !STATE.isLoading) {
+                    processURL();
+                }
+            });
+
+            DOM.urlInput.addEventListener('input', debounce(() => {
+                validateURL(DOM.urlInput.value);
+            }, CONFIG.INPUT_DEBOUNCE));
+
+            // Process button
+            DOM.processBtn.addEventListener('click', processURL);
+
+            // Format buttons
+            DOM.formatBtns.forEach((btn) => {
+                btn.addEventListener('click', (e) => {
+                    DOM.formatBtns.forEach(b => b.classList.remove('active'));
+                    e.target.closest('.format-btn').classList.add('active');
+
+                    STATE.currentFormat = e.target.closest('.format-btn').dataset.format;
+                    updateDownloadButton();
+                    updateFilenameExtension();
+                });
+            });
+
+            // Filename input
+            DOM.filenameInput.addEventListener('input', (e) => {
+                const sanitized = sanitizeFilename(e.target.value);
+                e.target.value = sanitized;
+                validateFilename(sanitized);
+            });
+
+            // Download button
+            DOM.downloadBtn.addEventListener('click', downloadVideo);
+
+            // Cancel download
+            DOM.progressCancel.addEventListener('click', cancelDownload);
+
+            // Prevent right-click context menu on download button for simplicity
+            document.addEventListener('click', (e) => {
+                if (e.target.closest('.btn-download')) {
+                    e.preventDefault();
+                }
+            });
+        }
+
+        /**
+         * Main initialization
+         */
+        function init() {
+            initializeLoadingScreen();
+            setupEventListeners();
+            updateDownloadButton();
+        }
+
+        // Start the app
+        init();
+    </script>
+</body>
+  </html>
